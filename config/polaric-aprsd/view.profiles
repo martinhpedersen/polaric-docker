@@ -1,0 +1,121 @@
+#
+# This is an example of a filter script.
+#
+# Feel free to modify this for your own needs. 
+# See http://aprs.no/dokuwiki/doku.php?id=filter.profiles for more information. 
+#
+
+
+slow      = max-speed < 20 AND moving ;
+
+TrackHide = NOT moving AND
+            NOT ident~"LE.*|.*@LE.*" AND
+            symbol ~ ".#|E0|I0|.&|[/\\]-|/_|/y|/r|\\j|.a" ;
+            
+            
+IrlpNode  = symbol ~ "I0" AND ident ~ "IRLP.*" ;
+EchoLink  = symbol ~ "E0" AND ident ~ "EL.*" ;
+
+
+Infrastructure = ident ~ "LD.+" OR
+                 symbol ~ "/r|.#|.&|.a" OR
+                 IrlpNode OR EchoLink OR infra ;
+
+Object = ident ~ ".+@.+";
+WXstn  = symbol ~ "/_";
+
+
+# points with tag "SAR", prefix LE or certain APRS symbols are likely
+# involved in some SAR operation.
+
+sarRelated = *SAR OR *sar OR 
+             ident ~ "LE.*|.@LE.*" OR
+             symbol ~ "/a|Es|Ls|Ms|Ss|/c|\\c|/o|/h|/\+|/P|/\!|\\\!";
+
+
+             
+             
+####################################################
+# Automatic tagging. 
+# sarRelated points are tagged "SAR"
+####################################################
+
+AUTOTAG {
+    sarRelated => { *SAR };
+}
+
+             
+####################################################
+# Show all APRS
+####################################################
+
+PUBLIC PROFILE alle {
+}
+
+
+#####################################################
+# Track mode. Hide the ident for infrastructure
+# and other things not "that interesting".
+#
+# This is also dynamic in the sense that some info
+# is hidden when zooming out. 
+#####################################################
+
+PUBLIC PROFILE track {
+   TrackHide      => { hide-ident };
+   
+   # Hide infrasctructure, objects and WX stations if scale is more than 1 million
+   scale > 1000000 AND
+      (Infrastructure OR Object OR WXstn)  => { hide-all };
+      
+   # Hide ident of non-moving objects if scale is more than 2 million
+   scale > 2000000 AND
+      NOT moving => { hide-ident };
+      
+   slow OR *slow            => { trail-length = 40, trail-time = 20 };
+   *longtrail               => { trail-length = 120, trail-time = 60 };
+}
+
+
+    
+##################################################
+# Show only points that are tagged as SAR
+################################################## 
+    
+PUBLIC PROFILE sar {
+   NOT *SAR  => { hide-all };
+}
+                                                                          
+                                
+###################################################
+# Infrastructure - based on callsign or symbol
+# (In Norway LD prefix is used for infrasstructure)
+###################################################
+
+PUBLIC PROFILE infra {
+   NOT (ident ~ "LD.+" OR symbol ~ "/r|.#" OR IrlpNode OR EchoLink OR infra)
+       => { hide-all };
+}
+
+
+###################################################
+# Active infrastructure.
+###################################################
+
+PUBLIC PROFILE ainfra {
+   NOT infra => { hide-all  };
+   infra     => { show-path };
+   fulldigi  => { style = "wdigi" };
+   igate     => { style = "igate" };
+}
+
+
+###################################################
+# Show only moving points.
+###################################################
+
+PUBLIC PROFILE moving {
+    NOT moving => { hide-all };
+}
+
+

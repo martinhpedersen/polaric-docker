@@ -1,0 +1,2 @@
+This file is here because aprsd expects this directory to exist, and git does
+not keep empty directories in the tree.
