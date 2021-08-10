@@ -2,8 +2,8 @@ FROM debian:stable-slim
 
 # Add polaric-server apt repo
 RUN apt-get update && apt-get -y install gnupg2 dirmngr
-RUN gpg --keyserver pool.sks-keyservers.net --recv-keys 89E7229CFFD59B2F && gpg --export --armor 3E61003E24632585EB3DFE3D89E7229CFFD59B2F | apt-key add -
-RUN echo "deb http://aprs.no/debian-rep binary-dev/" >> /etc/apt/sources.list && apt-get update
+COPY la7eca.gpg /usr/share/keyrings/
+RUN echo 'deb [signed-by=/usr/share/keyrings/la7eca.gpg] http://aprs.no/debian-rep binary-dev/' >> /etc/apt/sources.list && apt-get update
 
 # Install Java (with hack for slim image)
 RUN mkdir -p /usr/share/man/man1
